@@ -89,6 +89,22 @@ export default function AdminPage() {
     setUsers((prev) => prev.map((x) => x.id === u.id ? { ...x, is_admin: makeAdmin } : x));
   };
 
+  const togglePaid = async (u) => {
+    const makePaid = !u.is_paid;
+    const message = makePaid
+      ? `${u.name}さんの月会費(500円)を支払い済みにします。よろしいですか？`
+      : `${u.name}さんの月会費を未払いに戻します。よろしいですか？`;
+    if (!window.confirm(message)) return;
+
+    const { error } = await supabase.from("profiles").update({ is_paid: makePaid }).eq("id", u.id);
+    if (error) {
+      console.error(error);
+      window.alert("更新に失敗しました");
+      return;
+    }
+    setUsers((prev) => prev.map((x) => x.id === u.id ? { ...x, is_paid: makePaid } : x));
+  };
+
   const formatDate = (ts) => {
     if (!ts) return "-";
     const d = new Date(ts);
@@ -97,9 +113,9 @@ export default function AdminPage() {
 
   const downloadUsersCsv = () => {
     const escapeCell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const header = ["名前", "メールアドレス", "職業", "地域", "OP", "登録日"];
+    const header = ["名前", "メールアドレス", "職業", "地域", "OP", "登録日", "会費支払済み"];
     const rows = users.map((u) => [
-      u.name, u.email, u.job, u.area, u.op ?? 0, formatDate(u.created_at),
+      u.name, u.email, u.job, u.area, u.op ?? 0, formatDate(u.created_at), u.is_paid ? "はい" : "いいえ",
     ]);
     const csv = [header, ...rows].map((row) => row.map(escapeCell).join(",")).join("\r\n");
     const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
@@ -176,6 +192,7 @@ export default function AdminPage() {
                     <th style={styles.th}>地域</th>
                     <th style={styles.th}>OP</th>
                     <th style={styles.th}>登録日</th>
+                    <th style={styles.th}>会費</th>
                     <th style={styles.th}>管理者</th>
                   </tr>
                 </thead>
@@ -208,6 +225,14 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td style={styles.td}>{formatDate(u.created_at)}</td>
+                      <td style={styles.td}>
+                        <button
+                          onClick={() => togglePaid(u)}
+                          style={{ ...styles.adminToggleBtn, ...(u.is_paid ? styles.paidToggleOn : {}) }}
+                        >
+                          {u.is_paid ? "✓ 支払済" : "未払い"}
+                        </button>
+                      </td>
                       <td style={styles.td}>
                         <button
                           onClick={() => toggleAdmin(u)}
@@ -459,5 +484,9 @@ const styles = {
   adminToggleOn: {
     background: "#E8F5E9",
     color: "#2E7D32",
+  },
+  paidToggleOn: {
+    background: "#FFF3E0",
+    color: "#E65100",
   },
 };

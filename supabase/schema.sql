@@ -10,6 +10,7 @@ create table if not exists public.profiles (
   op integer not null default 0,
   menus jsonb not null default '[]'::jsonb,
   is_admin boolean not null default false,
+  is_paid boolean not null default false,
   avatar_url text,
   created_at timestamptz not null default now()
 );
@@ -152,7 +153,7 @@ create policy "avatar_public_read" on storage.objects
 create or replace function public.admin_list_users()
 returns table (
   id uuid, name text, job text, area text, message text,
-  op integer, menus jsonb, avatar_url text, is_admin boolean,
+  op integer, menus jsonb, avatar_url text, is_admin boolean, is_paid boolean,
   created_at timestamptz, email text
 )
 language plpgsql security definer set search_path = public as $$
@@ -163,7 +164,7 @@ begin
 
   return query
   select p.id, p.name, p.job, p.area, p.message, p.op, p.menus,
-         p.avatar_url, p.is_admin, p.created_at, u.email::text
+         p.avatar_url, p.is_admin, p.is_paid, p.created_at, u.email::text
   from public.profiles p
   join auth.users u on u.id = p.id
   order by p.created_at;
