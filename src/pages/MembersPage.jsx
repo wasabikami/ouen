@@ -1,9 +1,25 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { supabase } from "../supabase/config";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../components/BottomNav";
 import Avatar from "../components/Avatar";
+import markerIconUrl from "leaflet/dist/images/marker-icon.png";
+import markerIconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
+import markerShadowUrl from "leaflet/dist/images/marker-shadow.png";
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIconRetinaUrl,
+  iconUrl: markerIconUrl,
+  shadowUrl: markerShadowUrl,
+});
+
+function escapeHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, (s) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[s]));
+}
 
 export default function MembersPage() {
   const { user } = useAuth();
@@ -11,6 +27,8 @@ export default function MembersPage() {
   const [members, setMembers] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const mapElRef = useRef(null);
+  const mapRef = useRef(null);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -28,6 +46,43 @@ export default function MembersPage() {
       }
     };
     fetchMembers();
+  }, []);
+
+  useEffect(() => {
+    if (!mapElRef.current) return;
+    const pinned = members.filter((m) => typeof m.lat === "number" && typeof m.lng === "number");
+    if (pinned.length === 0) return;
+
+    if (!mapRef.current) {
+      mapRef.current = L.map(mapElRef.current, { scrollWheelZoom: true }).setView([pinned[0].lat, pinned[0].lng], 8);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 18,
+      }).addTo(mapRef.current);
+    }
+
+    mapRef.current.eachLayer((layer) => {
+      if (layer instanceof L.Marker) mapRef.current.removeLayer(layer);
+    });
+
+    const markers = pinned.map((m) =>
+      L.marker([m.lat, m.lng])
+        .addTo(mapRef.current)
+        .bindPopup(`<b>${escapeHtml(m.name)}</b>${m.area ? `<br>${escapeHtml(m.area)}` : ""}`)
+    );
+
+    if (markers.length > 1) {
+      mapRef.current.fitBounds(L.featureGroup(markers).getBounds().pad(0.25));
+    }
+  }, [members]);
+
+  useEffect(() => {
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
   }, []);
 
   const filtered = members.filter(
@@ -53,6 +108,10 @@ export default function MembersPage() {
           style={styles.searchInput}
         />
       </div>
+
+      {!loading && members.some((m) => typeof m.lat === "number" && typeof m.lng === "number") && (
+        <div ref={mapElRef} style={styles.map} />
+      )}
 
       <div style={styles.body}>
         {loading ? (
@@ -132,6 +191,13 @@ const styles = {
     borderRadius: 12,
     fontSize: 15,
     background: "#fafafa",
+  },
+  map: {
+    height: 220,
+    margin: "0 14px 12px",
+    borderRadius: 12,
+    overflow: "hidden",
+    boxShadow: "var(--shadow)",
   },
   body: {
     padding: "12px 14px",
