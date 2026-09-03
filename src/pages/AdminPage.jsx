@@ -132,7 +132,7 @@ export default function AdminPage() {
 
   const downloadUsersCsv = () => {
     const escapeCell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const header = ["名前", "メールアドレス", "職業", "地域", "OP", "登録日", "会費支払済み"];
+    const header = ["名前", "メールアドレス", "職業", "住所", "OP", "登録日", "会費支払済み"];
     const rows = users.map((u) => [
       u.name, u.email, u.job, u.area, u.op ?? 0, formatDate(u.created_at), u.is_paid ? "はい" : "いいえ",
     ]);
@@ -208,7 +208,7 @@ export default function AdminPage() {
                     <th style={styles.th}>名前</th>
                     <th style={styles.th}>メールアドレス</th>
                     <th style={styles.th}>職業</th>
-                    <th style={styles.th}>地域</th>
+                    <th style={styles.th}>住所</th>
                     <th style={styles.th}>OP</th>
                     <th style={styles.th}>登録日</th>
                     <th style={styles.th}>会費</th>

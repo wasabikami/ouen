@@ -49,7 +49,7 @@ export default function MembersPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="名前・職業・地域で検索"
+          placeholder="名前・職業・住所で検索"
           style={styles.searchInput}
         />
       </div>

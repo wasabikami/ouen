@@ -89,11 +89,11 @@ export default function ProfileSetupPage() {
             style={styles.input}
           />
 
-          <label style={styles.label}>地域</label>
+          <label style={styles.label}>住所</label>
           <input
             value={area}
             onChange={(e) => setArea(e.target.value)}
-            placeholder="東京都"
+            placeholder="東京都渋谷区〇〇1-2-3"
             style={styles.input}
           />
 

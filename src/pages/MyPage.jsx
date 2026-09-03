@@ -282,7 +282,7 @@ export default function MyPage() {
             <label style={styles.label}>職業・活動</label>
             <input value={job} onChange={(e) => setJob(e.target.value)} style={styles.input} />
 
-            <label style={styles.label}>地域</label>
+            <label style={styles.label}>住所</label>
             <input value={area} onChange={(e) => setArea(e.target.value)} style={styles.input} />
 
             <label style={styles.label}>ひとこと</label>
