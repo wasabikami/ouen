@@ -17,7 +17,7 @@ export default function MembersPage() {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("*")
+          .select("id, name, job, area, message, op, menus, is_admin, is_paid, avatar_url, lat, lng, created_at")
           .order("op", { ascending: false });
         if (error) throw error;
         setMembers(data ?? []);

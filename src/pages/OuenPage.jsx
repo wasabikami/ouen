@@ -25,7 +25,7 @@ export default function OuenPage() {
 
   useEffect(() => {
     const fetchMembers = async () => {
-      const { data } = await supabase.from("profiles").select("*");
+      const { data } = await supabase.from("profiles").select("id, name, job, area, message, op, menus, is_admin, is_paid, avatar_url, lat, lng, created_at");
       const list = (data ?? []).filter((m) => m.id !== user.id);
       setMembers(list);
     };

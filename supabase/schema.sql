@@ -12,8 +12,17 @@ create table if not exists public.profiles (
   is_admin boolean not null default false,
   is_paid boolean not null default false,
   avatar_url text,
+  lat double precision,
+  lng double precision,
+  email text,  -- 一般ユーザーからは見えない列（下のcolumn-level grantで制限）。admin_list_users()や管理画面用。
   created_at timestamptz not null default now()
 );
+
+-- email列は、authenticatedロールのSELECT対象から外す（他の全会員から見えないようにするため）。
+-- 既存のselect(*)クエリが壊れないよう、他の列だけを明示的に許可し直す。
+revoke select on public.profiles from authenticated;
+grant select (id, name, job, area, message, op, menus, is_admin, is_paid, avatar_url, lat, lng, created_at)
+  on public.profiles to authenticated;
 
 create table if not exists public.transactions (
   id uuid primary key default gen_random_uuid(),
