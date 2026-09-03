@@ -50,6 +50,18 @@ export default function MembersPage() {
     fetchMembers();
   }, []);
 
+  const markersRef = useRef([]);
+
+  const fitToMarkers = () => {
+    const markers = markersRef.current;
+    if (markers.length === 0) return;
+    if (markers.length === 1) {
+      mapRef.current.setView(markers[0].getLatLng(), 8);
+    } else {
+      mapRef.current.fitBounds(L.featureGroup(markers).getBounds().pad(0.25));
+    }
+  };
+
   useEffect(() => {
     if (!mapElRef.current) return;
     const pinned = members.filter((m) => typeof m.lat === "number" && typeof m.lng === "number");
@@ -67,19 +79,22 @@ export default function MembersPage() {
       if (layer instanceof L.Marker) mapRef.current.removeLayer(layer);
     });
 
-    const markers = pinned.map((m) =>
+    markersRef.current = pinned.map((m) =>
       L.marker([m.lat, m.lng])
         .addTo(mapRef.current)
         .bindPopup(`<b>${escapeHtml(m.name)}</b>${m.area ? `<br>${escapeHtml(m.area)}` : ""}`)
     );
 
-    if (markers.length > 1) {
-      mapRef.current.fitBounds(L.featureGroup(markers).getBounds().pad(0.25));
+    if (view === "map") {
+      mapRef.current.invalidateSize();
+      fitToMarkers();
     }
   }, [members]);
 
   useEffect(() => {
-    if (view === "map") mapRef.current?.invalidateSize();
+    if (view !== "map" || !mapRef.current) return;
+    mapRef.current.invalidateSize();
+    fitToMarkers();
   }, [view]);
 
   useEffect(() => {
