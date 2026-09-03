@@ -27,8 +27,10 @@ export default function MembersPage() {
   const [members, setMembers] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState("list"); // "list" | "map"
   const mapElRef = useRef(null);
   const mapRef = useRef(null);
+  const hasMapData = members.some((m) => typeof m.lat === "number" && typeof m.lng === "number");
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -77,6 +79,10 @@ export default function MembersPage() {
   }, [members]);
 
   useEffect(() => {
+    if (view === "map") mapRef.current?.invalidateSize();
+  }, [view]);
+
+  useEffect(() => {
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
@@ -109,11 +115,26 @@ export default function MembersPage() {
         />
       </div>
 
-      {!loading && members.some((m) => typeof m.lat === "number" && typeof m.lng === "number") && (
-        <div ref={mapElRef} style={styles.map} />
+      {!loading && hasMapData && (
+        <div style={styles.tabs}>
+          <button
+            onClick={() => setView("list")}
+            style={{ ...styles.tab, ...(view === "list" ? styles.tabActive : {}) }}
+          >
+            リスト
+          </button>
+          <button
+            onClick={() => setView("map")}
+            style={{ ...styles.tab, ...(view === "map" ? styles.tabActive : {}) }}
+          >
+            地図
+          </button>
+        </div>
       )}
 
-      <div style={styles.body}>
+      <div ref={mapElRef} style={{ ...styles.map, display: hasMapData && view === "map" ? "block" : "none" }} />
+
+      <div style={{ ...styles.body, display: hasMapData && view === "map" ? "none" : "block" }}>
         {loading ? (
           <div style={styles.loading}>読み込み中...</div>
         ) : filtered.length === 0 ? (
@@ -192,9 +213,29 @@ const styles = {
     fontSize: 15,
     background: "#fafafa",
   },
+  tabs: {
+    display: "flex",
+    gap: 8,
+    padding: "10px 14px 0",
+  },
+  tab: {
+    flex: 1,
+    padding: "10px",
+    fontSize: 13,
+    fontWeight: "bold",
+    color: "var(--text-sub)",
+    background: "#fff",
+    borderRadius: 10,
+    border: "2px solid #e0e0e0",
+  },
+  tabActive: {
+    color: "#fff",
+    background: "var(--green-primary)",
+    borderColor: "var(--green-primary)",
+  },
   map: {
-    height: 220,
-    margin: "0 14px 12px",
+    height: 400,
+    margin: "12px 14px",
     borderRadius: 12,
     overflow: "hidden",
     boxShadow: "var(--shadow)",
