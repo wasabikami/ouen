@@ -89,6 +89,25 @@ export default function AdminPage() {
     setUsers((prev) => prev.map((x) => x.id === u.id ? { ...x, is_admin: makeAdmin } : x));
   };
 
+  const deleteUser = async (u) => {
+    const selfWarning = u.id === userProfile?.id
+      ? "自分自身のアカウントを削除しようとしています。この操作を行うと自分は管理画面にアクセスできなくなります。\n\n"
+      : "";
+    if (!window.confirm(`${selfWarning}${u.name}さんを削除します。この操作は取り消せません。よろしいですか？`)) return;
+
+    const { error } = await supabase.from("profiles").delete().eq("id", u.id);
+    if (error) {
+      console.error(error);
+      window.alert(
+        error.code === "23503"
+          ? "取引履歴が残っているため削除できません。先に取引履歴タブから該当の取引を削除してください。"
+          : "削除に失敗しました"
+      );
+      return;
+    }
+    setUsers((prev) => prev.filter((x) => x.id !== u.id));
+  };
+
   const togglePaid = async (u) => {
     const makePaid = !u.is_paid;
     const message = makePaid
@@ -194,6 +213,7 @@ export default function AdminPage() {
                     <th style={styles.th}>登録日</th>
                     <th style={styles.th}>会費</th>
                     <th style={styles.th}>管理者</th>
+                    <th style={styles.th}></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -240,6 +260,9 @@ export default function AdminPage() {
                         >
                           {u.is_admin ? "✓ 管理者" : "管理者にする"}
                         </button>
+                      </td>
+                      <td style={styles.td}>
+                        <button onClick={() => deleteUser(u)} style={styles.deleteBtn}>削除</button>
                       </td>
                     </tr>
                   ))}

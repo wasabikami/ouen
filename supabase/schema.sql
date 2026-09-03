@@ -129,6 +129,9 @@ create policy "profiles_update_self_or_admin" on public.profiles
   using (id = auth.uid() or is_admin())
   with check (id = auth.uid() or is_admin());
 
+create policy "profiles_delete_admin" on public.profiles
+  for delete to authenticated using (is_admin());
+
 -- transactions: anyone signed in can read all transactions (public timeline / admin view).
 -- No direct INSERT policy: writes only happen through create_ouen_transaction().
 -- Only admins can delete.
