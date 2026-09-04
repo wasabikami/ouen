@@ -147,7 +147,14 @@ export default function MembersPage() {
         </div>
       )}
 
-      <div ref={mapElRef} style={{ ...styles.map, display: hasMapData && view === "map" ? "block" : "none" }} />
+      <div
+        ref={mapElRef}
+        style={{
+          ...styles.map,
+          ...(view === "map" ? styles.mapFullscreen : {}),
+          display: hasMapData && view === "map" ? "block" : "none",
+        }}
+      />
 
       <div style={{ ...styles.body, display: hasMapData && view === "map" ? "none" : "block" }}>
         {loading ? (
@@ -254,6 +261,12 @@ const styles = {
     borderRadius: 12,
     overflow: "hidden",
     boxShadow: "var(--shadow)",
+  },
+  mapFullscreen: {
+    height: "calc(100vh - 260px)",
+    margin: 0,
+    borderRadius: 0,
+    boxShadow: "none",
   },
   body: {
     padding: "12px 14px",
