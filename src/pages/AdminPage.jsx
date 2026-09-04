@@ -89,6 +89,23 @@ export default function AdminPage() {
     setUsers((prev) => prev.map((x) => x.id === u.id ? { ...x, is_admin: makeAdmin } : x));
   };
 
+  const saveUserFields = async (u, tr) => {
+    const name = tr.querySelector('[data-field="name"]').value.trim();
+    const job = tr.querySelector('[data-field="job"]').value.trim();
+    const area = tr.querySelector('[data-field="area"]').value.trim();
+    if (!name) {
+      window.alert("名前は空にできません");
+      return;
+    }
+    const { error } = await supabase.from("profiles").update({ name, job, area }).eq("id", u.id);
+    if (error) {
+      console.error(error);
+      window.alert("保存に失敗しました");
+      return;
+    }
+    setUsers((prev) => prev.map((x) => x.id === u.id ? { ...x, name, job, area } : x));
+  };
+
   const deleteUser = async (u) => {
     const selfWarning = u.id === userProfile?.id
       ? "自分自身のアカウントを削除しようとしています。この操作を行うと自分は管理画面にアクセスできなくなります。\n\n"
@@ -219,10 +236,16 @@ export default function AdminPage() {
                 <tbody>
                   {users.map((u) => (
                     <tr key={u.id} style={styles.tr}>
-                      <td style={styles.td}>{u.name}</td>
+                      <td style={styles.td}>
+                        <input defaultValue={u.name} data-field="name" style={styles.editInput} />
+                      </td>
                       <td style={styles.td}>{u.email || "-"}</td>
-                      <td style={styles.td}>{u.job || "-"}</td>
-                      <td style={styles.td}>{u.area || "-"}</td>
+                      <td style={styles.td}>
+                        <input defaultValue={u.job || ""} data-field="job" style={styles.editInput} />
+                      </td>
+                      <td style={styles.td}>
+                        <input defaultValue={u.area || ""} data-field="area" style={styles.editInput} />
+                      </td>
                       <td style={{ ...styles.td, textAlign: "right" }}>
                         {editingOpId === u.id ? (
                           <div style={styles.opEditRow}>
@@ -262,7 +285,15 @@ export default function AdminPage() {
                         </button>
                       </td>
                       <td style={styles.td}>
-                        <button onClick={() => deleteUser(u)} style={styles.deleteBtn}>削除</button>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button
+                            onClick={(e) => saveUserFields(u, e.currentTarget.closest("tr"))}
+                            style={styles.adminToggleBtn}
+                          >
+                            保存
+                          </button>
+                          <button onClick={() => deleteUser(u)} style={styles.deleteBtn}>削除</button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -471,6 +502,14 @@ const styles = {
     borderRadius: 6,
     fontSize: 13,
     textAlign: "right",
+  },
+  editInput: {
+    width: "100%",
+    minWidth: 90,
+    padding: "4px 8px",
+    border: "1px solid #e0e0e0",
+    borderRadius: 6,
+    fontSize: 13,
   },
   opSaveBtn: {
     padding: "4px 8px",
