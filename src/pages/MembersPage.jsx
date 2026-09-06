@@ -37,7 +37,7 @@ export default function MembersPage() {
       try {
         const { data, error } = await supabase
           .from("profiles")
-          .select("id, name, job, area, message, op, menus, is_admin, is_paid, avatar_url, lat, lng, created_at")
+          .select("id, name, job, area, url, message, op, menus, is_admin, is_paid, avatar_url, lat, lng, member_type, created_at")
           .order("op", { ascending: false });
         if (error) throw error;
         setMembers(data ?? []);
@@ -51,6 +51,19 @@ export default function MembersPage() {
   }, []);
 
   const markersRef = useRef([]);
+
+  function pinIcon(fillColor, strokeColor, w, h) {
+    return L.divIcon({
+      className: "pin-icon",
+      html: `<svg width="${w}" height="${h}" viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24c0-6.6-5.4-12-12-12z" fill="${fillColor}" stroke="${strokeColor}" stroke-width="1.8"/>
+        <circle cx="12" cy="12" r="4.2" fill="${strokeColor}"/>
+      </svg>`,
+      iconSize: [w, h],
+      iconAnchor: [w / 2, h],
+      popupAnchor: [0, -h * 0.92],
+    });
+  }
 
   const fitToMarkers = () => {
     const markers = markersRef.current;
@@ -79,11 +92,18 @@ export default function MembersPage() {
       if (layer instanceof L.Marker) mapRef.current.removeLayer(layer);
     });
 
-    markersRef.current = pinned.map((m) =>
-      L.marker([m.lat, m.lng])
+    markersRef.current = pinned.map((m) => {
+      const safeUrl = /^https?:\/\//i.test(m.url || "") ? m.url : null;
+      const nameHtml = safeUrl
+        ? `<a href="${escapeHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(m.name)}</a>`
+        : `<b>${escapeHtml(m.name)}</b>`;
+      const isArtisan = m.member_type === "artisan";
+      return L.marker([m.lat, m.lng], {
+        icon: isArtisan ? pinIcon("#2A6EBB", "#12335E", 25, 41) : pinIcon("#FFC93C", "#8A6200", 20, 32),
+      })
         .addTo(mapRef.current)
-        .bindPopup(`<b>${escapeHtml(m.name)}</b>${m.area ? `<br>${escapeHtml(m.area)}` : ""}`)
-    );
+        .bindPopup(`${nameHtml}${m.area ? `<br>${escapeHtml(m.area)}` : ""}`);
+    });
 
     if (view === "map") {
       mapRef.current.invalidateSize();
@@ -171,7 +191,11 @@ export default function MembersPage() {
                   <Avatar url={m.avatar_url} name={m.name} size={40} style={styles.avatar} />
                   <div style={styles.info}>
                     <div style={styles.nameRow}>
-                      <span style={styles.name}>{m.name}</span>
+                      {/^https?:\/\//i.test(m.url || "") ? (
+                        <a href={m.url} target="_blank" rel="noopener noreferrer" style={styles.name}>{m.name}</a>
+                      ) : (
+                        <span style={styles.name}>{m.name}</span>
+                      )}
                       {m.id === user.id && <span style={styles.meBadge}>あなた</span>}
                     </div>
                     <span style={styles.sub}>{m.job}{m.area ? ` ・ ${m.area}` : ""}</span>
