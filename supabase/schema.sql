@@ -21,7 +21,7 @@ create table if not exists public.profiles (
 -- email列は、authenticatedロールのSELECT対象から外す（他の全会員から見えないようにするため）。
 -- 既存のselect(*)クエリが壊れないよう、他の列だけを明示的に許可し直す。
 revoke select on public.profiles from authenticated;
-grant select (id, name, job, area, message, op, menus, is_admin, is_paid, avatar_url, lat, lng, created_at)
+grant select (id, name, job, area, message, op, menus, is_admin, is_paid, avatar_url, lat, lng, status, created_at)
   on public.profiles to authenticated;
 
 create table if not exists public.transactions (

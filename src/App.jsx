@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
+import PendingApprovalPage from "./pages/PendingApprovalPage";
 import HomePage from "./pages/HomePage";
 import OuenPage from "./pages/OuenPage";
 import MyPage from "./pages/MyPage";
@@ -13,6 +14,7 @@ function PrivateRoute({ children }) {
   const { user, userProfile } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
   if (!userProfile) return <Navigate to="/profile-setup" replace />;
+  if (userProfile.status && userProfile.status !== "approved") return <PendingApprovalPage />;
   return children;
 }
 
