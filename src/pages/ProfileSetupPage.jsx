@@ -51,7 +51,7 @@ export default function ProfileSetupPage() {
       const { data, error: insertError } = await supabase
         .from("profiles")
         .insert(profile)
-        .select()
+        .select("id, name, job, area, message, op, menus, is_admin, is_paid, avatar_url, lat, lng, created_at")
         .single();
       if (insertError) throw insertError;
       setUserProfile(data);
