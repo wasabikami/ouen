@@ -19,6 +19,7 @@ export default function MyPage() {
   const [name, setName] = useState(userProfile?.name ?? "");
   const [job, setJob] = useState(userProfile?.job ?? "");
   const [area, setArea] = useState(userProfile?.area ?? "");
+  const [url, setUrl] = useState(userProfile?.url ?? "");
   const [message, setMessage] = useState(userProfile?.message ?? "");
   const [menus, setMenus] = useState(userProfile?.menus ?? []);
   const [saving, setSaving] = useState(false);
@@ -97,6 +98,7 @@ export default function MyPage() {
         name,
         job,
         area,
+        url,
         message,
         menus: menus.filter((m) => m.name && m.price > 0),
       };
@@ -284,6 +286,9 @@ export default function MyPage() {
 
             <label style={styles.label}>住所</label>
             <input value={area} onChange={(e) => setArea(e.target.value)} style={styles.input} />
+
+            <label style={styles.label}>サイト・SNSのURL</label>
+            <input value={url} onChange={(e) => setUrl(e.target.value)} style={styles.input} />
 
             <label style={styles.label}>ひとこと</label>
             <textarea
