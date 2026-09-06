@@ -2,7 +2,6 @@ import { useState } from "react";
 import { supabase } from "../supabase/config";
 
 export default function LoginPage() {
-  const [mode, setMode] = useState("login"); // "login" | "signup"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,35 +32,12 @@ export default function LoginPage() {
     }
   };
 
-  const handleSignup = async () => {
-    setError("");
-    setNotice("");
-    setLoading(true);
-    try {
-      const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
-      if (signUpError) throw signUpError;
-      if (!data.session) {
-        setNotice("確認メールを送信しました。メール内のリンクをクリックしてからログインしてください。");
-        setMode("login");
-        setPassword("");
-      }
-    } catch (e) {
-      setError(translateError(e));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = () => {
     if (!email || !password) {
       setError("メールアドレスとパスワードを入力してください");
       return;
     }
-    if (mode === "login") {
-      handleLogin();
-    } else {
-      handleSignup();
-    }
+    handleLogin();
   };
 
   return (
@@ -76,21 +52,14 @@ export default function LoginPage() {
       <div style={styles.card}>
         <div style={styles.tabs}>
           <button
-            onClick={() => { setMode("login"); setError(""); setNotice(""); }}
-            style={{ ...styles.tabBtn, ...(mode === "login" ? styles.tabActive : {}) }}
+            style={{ ...styles.tabBtn, ...styles.tabActive }}
           >
             ログイン
           </button>
-          <button
-            onClick={() => { setMode("signup"); setError(""); setNotice(""); }}
-            style={{ ...styles.tabBtn, ...(mode === "signup" ? styles.tabActive : {}) }}
-          >
-            新規登録
-          </button>
         </div>
 
-        <h2 style={styles.title}>{mode === "login" ? "メールアドレスでログイン" : "新規アカウント登録"}</h2>
-        <p style={styles.desc}>{mode === "login" ? "登録済みのメールアドレスとパスワードを入力してください" : "メールアドレスとパスワードを設定してください"}</p>
+        <h2 style={styles.title}>メールアドレスでログイン</h2>
+        <p style={styles.desc}>登録済みのメールアドレスとパスワードを入力してください</p>
 
         <div style={styles.inputGroup}>
           <label style={styles.label}>メールアドレス</label>
@@ -112,7 +81,7 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="6文字以上"
             style={styles.input}
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            autoComplete="current-password"
           />
         </div>
 
@@ -124,13 +93,17 @@ export default function LoginPage() {
           disabled={loading || !email || !password}
           style={{ ...styles.btn, ...(loading || !email || !password ? styles.btnDisabled : {}) }}
         >
-          {loading ? "処理中..." : mode === "login" ? "ログイン" : "登録する"}
+          {loading ? "処理中..." : "ログイン"}
         </button>
+
+        <p style={styles.signupHint}>
+          初めての方は<a href="https://wasabikami.github.io/shinEDO/#apply" style={styles.link2}>shinEDOのHP</a>から登録してください
+        </p>
       </div>
 
       <div style={styles.footer}>
         <p style={styles.footerText}>
-          {mode === "login" ? "ログイン" : "登録"}することで<br />
+          ログインすることで<br />
           <span style={styles.link}>利用規約</span>および<span style={styles.link}>プライバシーポリシー</span>に同意したものとみなします
         </p>
       </div>
@@ -246,6 +219,16 @@ const styles = {
     color: "#c62828",
     fontSize: 13,
     marginBottom: 8,
+  },
+  signupHint: {
+    marginTop: 16,
+    textAlign: "center",
+    fontSize: 13,
+    color: "#757575",
+  },
+  link2: {
+    color: "#2E7D32",
+    fontWeight: "bold",
   },
   notice: {
     color: "#2E7D32",
